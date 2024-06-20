@@ -1,3 +1,3 @@
 # WhatsAppClone
 
-A WhatsApp clone implemented using SwiftUI and Firebase.
+A WhatsApp clone implemented using SwiftUI, UIKit and Firebase.
