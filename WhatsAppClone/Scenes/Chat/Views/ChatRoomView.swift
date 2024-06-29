@@ -20,7 +20,8 @@ struct ChatRoomView: View {
     }
 
     var body: some View {
-        MessageListView(viewModel, voiceMessagePlayer: voiceMessagePlayer)
+        MessageListView(viewModel)
+            .environmentObject(voiceMessagePlayer)
             .toolbar(.hidden, for: .tabBar)
             .toolbar {
                 leadingNavItems
