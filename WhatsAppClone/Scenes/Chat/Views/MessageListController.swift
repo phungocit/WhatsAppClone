@@ -19,9 +19,8 @@ final class MessageListController: UIViewController {
         setUpMessageListeners()
     }
 
-    init(_ viewModel: ChatRoomViewModel, voiceMessagePlayer: VoiceMessagePlayer) {
+    init(_ viewModel: ChatRoomViewModel) {
         self.viewModel = viewModel
-        self.voiceMessagePlayer = voiceMessagePlayer
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -37,7 +36,6 @@ final class MessageListController: UIViewController {
 
     // MARK: Properties
     private let viewModel: ChatRoomViewModel
-    @ObservedObject var voiceMessagePlayer: VoiceMessagePlayer
     private var subscriptions = Set<AnyCancellable>()
     private let cellIdentifier = "MessageListControllerCells"
 
@@ -168,6 +166,6 @@ private extension UITableView {
 }
 
 #Preview {
-    MessageListView(ChatRoomViewModel(.placeholder), voiceMessagePlayer: VoiceMessagePlayer())
+    MessageListView(ChatRoomViewModel(.placeholder))
         .ignoresSafeArea()
 }
