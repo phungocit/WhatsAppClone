@@ -10,20 +10,18 @@ import SwiftUI
 struct MessageListView: UIViewControllerRepresentable {
     typealias UIViewControllerType = MessageListController
     private var viewModel: ChatRoomViewModel
-    @ObservedObject var voiceMessagePlayer: VoiceMessagePlayer
 
-    init(_ viewModel: ChatRoomViewModel, voiceMessagePlayer: VoiceMessagePlayer) {
+    init(_ viewModel: ChatRoomViewModel) {
         self.viewModel = viewModel
-        self.voiceMessagePlayer = voiceMessagePlayer
     }
 
     func makeUIViewController(context: Context) -> MessageListController {
-        MessageListController(viewModel, voiceMessagePlayer: voiceMessagePlayer)
+        MessageListController(viewModel)
     }
 
     func updateUIViewController(_ uiViewController: MessageListController, context: Context) {}
 }
 
 #Preview {
-    MessageListView(ChatRoomViewModel(.placeholder), voiceMessagePlayer: VoiceMessagePlayer())
+    MessageListView(ChatRoomViewModel(.placeholder))
 }
