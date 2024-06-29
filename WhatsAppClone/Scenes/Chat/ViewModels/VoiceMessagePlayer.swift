@@ -9,12 +9,12 @@ import AVFoundation
 import Foundation
 
 final class VoiceMessagePlayer: ObservableObject {
-    @Published var playbackState = PlaybackState.stopped
-    @Published var currentTime = CMTime.zero
+    @Published private(set) var playbackState = PlaybackState.stopped
+    @Published private(set) var currentTime = CMTime.zero
 
-    private var player: AVPlayer?
     private var playerItem: AVPlayerItem?
-    private var currentURL: URL?
+    private var player: AVPlayer?
+    private(set) var currentURL: URL?
     private var currentTimeObserver: Any?
     private var timeScale = CMTimeScale(NSEC_PER_SEC)
 
@@ -26,6 +26,7 @@ final class VoiceMessagePlayer: ObservableObject {
         if let currentURL, currentURL == url {
             resumePlaying()
         } else {
+            stopAudio()
             currentURL = url
             let playerItem = AVPlayerItem(url: url)
             self.playerItem = playerItem
@@ -97,5 +98,9 @@ private extension VoiceMessagePlayer {
 extension VoiceMessagePlayer {
     enum PlaybackState {
         case stopped, playing, paused
+
+        var icon: String {
+            self == .playing ? "pause.fill" : "play.fill"
+        }
     }
 }
