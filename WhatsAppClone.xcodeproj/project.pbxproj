@@ -12,6 +12,7 @@
 		478385A12C2338EA000AF4F0 /* UIApplication+.swift in Sources */ = {isa = PBXBuildFile; fileRef = 478385A02C2338EA000AF4F0 /* UIApplication+.swift */; };
 		478385A32C233A52000AF4F0 /* UIWindowScene+.swift in Sources */ = {isa = PBXBuildFile; fileRef = 478385A22C233A52000AF4F0 /* UIWindowScene+.swift */; };
 		47924F112C26B34700072E2F /* VoiceMessagePlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47924F102C26B34700072E2F /* VoiceMessagePlayer.swift */; };
+		47F9D2112C306B020060B5F8 /* Haptic.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47F9D2102C306B020060B5F8 /* Haptic.swift */; };
 		ADDA72932C241F2C00173136 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = ADDA72922C241F2C00173136 /* LaunchScreen.storyboard */; };
 		ADDA72952C24202300173136 /* LaunchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADDA72942C24202300173136 /* LaunchView.swift */; };
 		B501B3CF2B9FC21900AADB33 /* UpdatesTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B501B3CE2B9FC21900AADB33 /* UpdatesTabView.swift */; };
@@ -86,6 +87,7 @@
 		478385A22C233A52000AF4F0 /* UIWindowScene+.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIWindowScene+.swift"; sourceTree = "<group>"; };
 		47924F102C26B34700072E2F /* VoiceMessagePlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceMessagePlayer.swift; sourceTree = "<group>"; };
 		47DA307C2C1E7B9600E80E1F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		47F9D2102C306B020060B5F8 /* Haptic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Haptic.swift; sourceTree = "<group>"; };
 		ADDA72922C241F2C00173136 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		ADDA72942C24202300173136 /* LaunchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchView.swift; sourceTree = "<group>"; };
 		B501B3CE2B9FC21900AADB33 /* UpdatesTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdatesTabView.swift; sourceTree = "<group>"; };
@@ -349,6 +351,7 @@
 			children = (
 				B501B3FF2BA39F7000AADB33 /* CustomModifiers.swift */,
 				4783859C2C231B58000AF4F0 /* FirebaseHelper.swift */,
+				47F9D2102C306B020060B5F8 /* Haptic.swift */,
 			);
 			path = Helpers;
 			sourceTree = "<group>";
@@ -630,6 +633,7 @@
 				B5BB25F62BDC5EC400748E6F /* TimeInterval+.swift in Sources */,
 				B501B41D2BA8B8D500AADB33 /* AuthButtonView.swift in Sources */,
 				B501B3D12B9FF04F00AADB33 /* CallsTabView.swift in Sources */,
+				47F9D2112C306B020060B5F8 /* Haptic.swift in Sources */,
 				B501B42F2BA905FC00AADB33 /* UserItem.swift in Sources */,
 				B52470A72BAE252A005797E9 /* ChannelTabViewModel.swift in Sources */,
 				478385A12C2338EA000AF4F0 /* UIApplication+.swift in Sources */,
