@@ -2,7 +2,7 @@
 //  Haptic.swift
 //  WhatsAppClone
 //
-//  Created by Tran Ngoc Phu on 29/6/24.
+//  Created by Phil Tran on 29/6/24.
 //
 
 import Foundation
