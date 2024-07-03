@@ -13,7 +13,7 @@ import UIKit
 final class MessageListController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
-        tableView.backgroundColor = .clear
+        messageCollectionView.backgroundColor = .clear
         view.backgroundColor = .clear
         setUpViews()
         setUpMessageListeners()
@@ -39,18 +39,16 @@ final class MessageListController: UIViewController {
     private var subscriptions = Set<AnyCancellable>()
     private let cellIdentifier = "MessageListControllerCells"
 
-    private lazy var tableView: UITableView = {
-        let tableView = UITableView()
-        tableView.delegate = self
-        tableView.dataSource = self
-        tableView.separatorStyle = .none
-        tableView.backgroundColor = UIColor.gray.withAlphaComponent(0.4)
-        tableView.translatesAutoresizingMaskIntoConstraints = false
-        tableView.contentInset = .init(top: 0, left: 0, bottom: 60, right: 0)
-        tableView.scrollIndicatorInsets = .init(top: 0, left: 0, bottom: 60, right: 0)
-        tableView.keyboardDismissMode = .onDrag
-        return tableView
-    }()
+    private let compositionalLayout = UICollectionViewCompositionalLayout { sectionIndex, layoutEnvironment in
+        var listConfig = UICollectionLayoutListConfiguration(appearance: .plain)
+        listConfig.backgroundColor = .gray.withAlphaComponent(0.2)
+        listConfig.showsSeparators = false
+        let section = NSCollectionLayoutSection.list(using: listConfig, layoutEnvironment: layoutEnvironment)
+        section.contentInsets.leading = 0
+        section.contentInsets.trailing = 0
+        section.interGroupSpacing = -12
+        return section
+    }
 
     private let backgroundImageView: UIImageView = {
         let backgroundImageView = UIImageView(image: .chatBackground)
@@ -58,10 +56,32 @@ final class MessageListController: UIViewController {
         return backgroundImageView
     }()
 
+    private lazy var pullToRefresh: UIRefreshControl = {
+        let pullToRefresh = UIRefreshControl()
+        pullToRefresh.transform = CGAffineTransformMakeScale(0.75, 0.75)
+        pullToRefresh.addTarget(self, action: #selector(refreshData), for: .valueChanged)
+        return pullToRefresh
+    }()
+
+    private lazy var messageCollectionView: UICollectionView = {
+        let collectionView = UICollectionView(frame: .zero, collectionViewLayout: compositionalLayout)
+        collectionView.translatesAutoresizingMaskIntoConstraints = false
+        collectionView.dataSource = self
+        collectionView.delegate = self
+        collectionView.selfSizingInvalidation = .enabledIncludingConstraints
+        collectionView.contentInset = .init(top: 0, left: 0, bottom: 60, right: 0)
+        collectionView.scrollIndicatorInsets = .init(top: 0, left: 0, bottom: 60, right: 0)
+        collectionView.keyboardDismissMode = .onDrag
+        collectionView.backgroundColor = .clear
+        collectionView.register(UICollectionViewCell.self, forCellWithReuseIdentifier: cellIdentifier)
+        collectionView.refreshControl = pullToRefresh
+        return collectionView
+    }()
+
     // MARK: Methods
     private func setUpViews() {
         view.addSubview(backgroundImageView)
-        view.addSubview(tableView)
+        view.addSubview(messageCollectionView)
 
         NSLayoutConstraint.activate([
             backgroundImageView.topAnchor.constraint(equalTo: view.topAnchor),
@@ -69,13 +89,11 @@ final class MessageListController: UIViewController {
             backgroundImageView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             backgroundImageView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
 
-            tableView.topAnchor.constraint(equalTo: view.topAnchor),
-            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            messageCollectionView.topAnchor.constraint(equalTo: view.topAnchor),
+            messageCollectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            messageCollectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            messageCollectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
         ])
-
-        tableView.register(UITableViewCell.self, forCellReuseIdentifier: cellIdentifier)
     }
 
     private func setUpMessageListeners() {
@@ -84,7 +102,7 @@ final class MessageListController: UIViewController {
         viewModel.$messages
             .debounce(for: .milliseconds(delay), scheduler: DispatchQueue.main)
             .sink { [weak self] _ in
-                self?.tableView.reloadData()
+                self?.messageCollectionView.reloadData()
             }
             .store(in: &subscriptions)
 
@@ -92,20 +110,23 @@ final class MessageListController: UIViewController {
             .debounce(for: .milliseconds(delay), scheduler: DispatchQueue.main)
             .sink { [weak self] scrollRequest in
                 if scrollRequest.scroll {
-                    self?.tableView.scrollToLastRow(at: .bottom, animated: scrollRequest.isAnimated)
+                    self?.messageCollectionView.scrollToLastItem(at: .bottom, animated: scrollRequest.isAnimated)
                 }
             }
             .store(in: &subscriptions)
     }
+
+    @objc private func refreshData() {
+        messageCollectionView.refreshControl?.endRefreshing()
+    }
 }
 
-// MARK: UITableViewDelegate & UITableViewDataSource
-extension MessageListController: UITableViewDelegate, UITableViewDataSource {
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: cellIdentifier, for: indexPath)
+// MARK: UICollectionViewDelegate & UICollectionViewDataSource
+extension MessageListController: UICollectionViewDelegate, UICollectionViewDataSource {
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: cellIdentifier, for: indexPath)
         cell.backgroundColor = .clear
-        cell.selectionStyle = .none
-        let message = viewModel.messages[indexPath.row]
+        let message = viewModel.messages[indexPath.item]
 
         cell.contentConfiguration = UIHostingConfiguration {
             switch message.type {
@@ -130,38 +151,30 @@ extension MessageListController: UITableViewDelegate, UITableViewDataSource {
         return cell
     }
 
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         viewModel.messages.count
     }
 
-    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        UITableView.automaticDimension
-    }
-
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         UIApplication.dismissKeyboard()
         let messageItem = viewModel.messages[indexPath.row]
         switch messageItem.type {
         case .video:
             guard let videoURLString = messageItem.videoURL, let url = URL(string: videoURLString) else { return }
             viewModel.showMediaPlayer(url)
-        case .audio:
-            guard let audioURLString = messageItem.audioURL, let url = URL(string: audioURLString) else { return }
-            // viewModel.showMediaPlayer(url)
-            print("url", url)
         default: break
         }
     }
 }
 
-private extension UITableView {
-    func scrollToLastRow(at scrollPosition: UITableView.ScrollPosition, animated: Bool) {
-        guard numberOfRows(inSection: numberOfSections - 1) > 0 else { return }
+private extension UICollectionView {
+    func scrollToLastItem(at scrollPosition: UICollectionView.ScrollPosition, animated: Bool) {
+        guard numberOfItems(inSection: numberOfSections - 1) > 0 else { return }
 
         let lastSectionIndex = numberOfSections - 1
-        let lastRowIndex = numberOfRows(inSection: lastSectionIndex) - 1
+        let lastRowIndex = numberOfItems(inSection: lastSectionIndex) - 1
         let lastRowIndexPath = IndexPath(row: lastRowIndex, section: lastSectionIndex)
-        scrollToRow(at: lastRowIndexPath, at: scrollPosition, animated: animated)
+        scrollToItem(at: lastRowIndexPath, at: scrollPosition, animated: animated)
     }
 }
 
