@@ -2,7 +2,7 @@
 //  WhatsAppCloneApp.swift
 //  WhatsAppClone
 //
-//  Created by Phil Tran on 2/6/24.
+//  Created by Foo on 2/6/24.
 //
 
 import Firebase
