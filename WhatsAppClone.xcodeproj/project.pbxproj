@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		47668FF62C38DF0700CFBB5C /* BubbleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47668FF52C38DF0700CFBB5C /* BubbleView.swift */; };
 		4783859D2C231B58000AF4F0 /* FirebaseHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4783859C2C231B58000AF4F0 /* FirebaseHelper.swift */; };
 		4783859F2C232C97000AF4F0 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 4783859E2C232C97000AF4F0 /* GoogleService-Info.plist */; };
 		478385A12C2338EA000AF4F0 /* UIApplication+.swift in Sources */ = {isa = PBXBuildFile; fileRef = 478385A02C2338EA000AF4F0 /* UIApplication+.swift */; };
@@ -81,6 +82,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		47668FF52C38DF0700CFBB5C /* BubbleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BubbleView.swift; sourceTree = "<group>"; };
 		4783859C2C231B58000AF4F0 /* FirebaseHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseHelper.swift; sourceTree = "<group>"; };
 		4783859E2C232C97000AF4F0 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		478385A02C2338EA000AF4F0 /* UIApplication+.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIApplication+.swift"; sourceTree = "<group>"; };
@@ -325,6 +327,7 @@
 				B501B3F12BA3745C00AADB33 /* TextInputAreaView.swift */,
 				B501B3F32BA3859400AADB33 /* MessageListController.swift */,
 				B501B3F52BA3874200AADB33 /* MessageListView.swift */,
+				47668FF52C38DF0700CFBB5C /* BubbleView.swift */,
 				B501B3FA2BA39B5C00AADB33 /* BubbleTextView.swift */,
 				B501B3FC2BA39E5700AADB33 /* BubbleTailView.swift */,
 				B501B4032BA4CC9D00AADB33 /* BubbleImageView.swift */,
@@ -640,6 +643,7 @@
 				B501B3E72BA2163800AADB33 /* SettingsTabView.swift in Sources */,
 				B501B4192BA8B4F700AADB33 /* AuthHeaderView.swift in Sources */,
 				B501B4322BA9064000AADB33 /* FirebaseConstants.swift in Sources */,
+				47668FF62C38DF0700CFBB5C /* BubbleView.swift in Sources */,
 				B501B4252BA8D06F00AADB33 /* AuthProvider.swift in Sources */,
 				B57EEE2A2BC9F09B00D8A4E4 /* AdminMessageTextView.swift in Sources */,
 				B501B3DC2B9FFBDF00AADB33 /* CommunityTabView.swift in Sources */,
