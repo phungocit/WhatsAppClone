@@ -41,4 +41,33 @@ extension Date {
         dateFormatter.dateFormat = format
         return dateFormatter.string(from: self)
     }
+
+    var relativeDateString: String {
+        let calendar = Calendar.current
+        if calendar.isDateInToday(self) {
+            return "Today"
+        }
+        if calendar.isDateInYesterday(self) {
+            return "Yesterday"
+        }
+        if isCurrentWeek {
+            return toString(format: "EEEE") // Monday
+        }
+        if isCurrentYear {
+            toString(format: "EEE, MMM d") // "Mon, Feb 10"
+        }
+        return toString(format: "MMM dd, yyyy") // "Mon, Feb 10, 2000"
+    }
+
+    func isSameDay(as otherDay: Date) -> Bool {
+        Calendar.current.isDate(self, inSameDayAs: otherDay)
+    }
+
+    private var isCurrentWeek: Bool {
+        Calendar.current.isDate(self, equalTo: Date(), toGranularity: .weekday)
+    }
+
+    private var isCurrentYear: Bool {
+        Calendar.current.isDate(self, equalTo: Date(), toGranularity: .year)
+    }
 }
