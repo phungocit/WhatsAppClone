@@ -216,8 +216,8 @@ final class ChatRoomViewModel: ObservableObject {
     }
 
     private func getMessages() {
-        // messages = dummyMessages
-        // scrollToBottom(isAnimated: false)
+//        messages = dummyMessages
+//        scrollToBottom(isAnimated: false)
 
         MessageService.getMessages(for: channel) { [weak self] messages in
             self?.messages = messages
@@ -335,12 +335,18 @@ final class ChatRoomViewModel: ObservableObject {
         photoPickerItems.remove(at: photoIndex)
     }
 
+    func isNewDay(for message: MessageItem, at index: Int) -> Bool {
+        let priorIndex = max(0, index - 1)
+        let priorMessage = messages[priorIndex]
+        return !message.timeStamp.isSameDay(as: priorMessage.timeStamp)
+    }
+
     private var dummyMessages: [MessageItem] {
         [
             MessageItem(id: "1", isGroupChat: false, text: "", type: .admin(AdminMessageType.channelCreation), ownerUid: "1", timeStamp: ISO8601DateFormatter().date(from: "2024-06-20 01: 55: 28 +0000") ?? Date(), sender: nil, thumbnailUrl: nil, thumbnailWidth: nil, thumbnailHeight: nil, videoURL: nil, audioURL: nil, audioDuration: nil),
             MessageItem(id: "2", isGroupChat: false, text: "66", type: .text, ownerUid: "2", timeStamp: ISO8601DateFormatter().date(from: "2024-06-20 01: 56: 11 +0000") ?? Date(), sender: nil, thumbnailUrl: nil, thumbnailWidth: nil, thumbnailHeight: nil, videoURL: nil, audioURL: nil, audioDuration: nil), MessageItem(id: "3", isGroupChat: false, text: "88", type: .text, ownerUid: "3", timeStamp: ISO8601DateFormatter().date(from: "2024-06-20 01: 56: 18 +0000") ?? Date(), sender: nil, thumbnailUrl: nil, thumbnailWidth: nil, thumbnailHeight: nil, videoURL: nil, audioURL: nil, audioDuration: nil),
             MessageItem(id: "4", isGroupChat: false, text: "", type: .photo, ownerUid: "4", timeStamp: ISO8601DateFormatter().date(from: "2024-06-20 01: 58: 12 +0000") ?? Date(), sender: nil, thumbnailUrl: "https://images.pexels.com/photos/96938/pexels-photo-96938.jpeg?cs=srgb&dl=pexels-francesco-ungaro-96938.jpg&fm=jpg", thumbnailWidth: 667.0, thumbnailHeight: 1000.0, videoURL: nil, audioURL: nil, audioDuration: nil),
-            MessageItem(id: "5", isGroupChat: false, text: "", type: .photo, ownerUid: "5", timeStamp: ISO8601DateFormatter().date(from: "2024-06-20 01: 58: 56 +0000") ?? Date(), sender: nil, thumbnailUrl: "https://images.pexels.com/photos/96938/pexels-photo-96938.jpeg?cs=srgb&dl=pexels-francesco-ungaro-96938.jpg&fm=jpg", thumbnailWidth: 4288.0, thumbnailHeight: 2848.0, videoURL: nil, audioURL: nil, audioDuration: nil)
+            MessageItem(id: "5", isGroupChat: false, text: "", type: .photo, ownerUid: "5", timeStamp: ISO8601DateFormatter().date(from: "2024-06-20 01: 58: 56 +0000") ?? Date(), sender: nil, thumbnailUrl: "https://images.pexels.com/photos/96938/pexels-photo-96938.jpeg?cs=srgb&dl=pexels-francesco-ungaro-96938.jpg&fm=jpg", thumbnailWidth: 4288.0, thumbnailHeight: 2848.0, videoURL: nil, audioURL: nil, audioDuration: nil),
         ]
     }
 }
