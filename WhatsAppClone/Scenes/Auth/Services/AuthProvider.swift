@@ -58,7 +58,7 @@ final class AuthManager: AuthProvider {
             authState.send(.loggedOut)
         } else {
             // dummy
-            // authState.send(.loggedIn(UserItem(uid: "1", username: "Black Panther", email: "blackpanther@test.com")))
+//             authState.send(.loggedIn(UserItem(uid: "1", username: "Black Panther", email: "blackpanther@test.com")))
             fetchCurrentUserInfo()
         }
     }
