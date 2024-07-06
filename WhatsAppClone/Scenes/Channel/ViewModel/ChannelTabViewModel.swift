@@ -26,7 +26,7 @@ final class ChannelTabViewModel: ObservableObject {
     init(_ currentUser: UserItem) {
         self.currentUser = currentUser
         fetchCurrentUserChannels()
-        // dummyData()
+//         dummyData()
     }
 
     func onNewChannelCreation(_ channel: ChannelItem) {
