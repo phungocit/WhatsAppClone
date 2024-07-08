@@ -14,7 +14,7 @@ enum AdminMessageType: String {
     case channelNameChanged
 }
 
-enum MessageType {
+enum MessageType: Hashable {
     case admin(_ type: AdminMessageType), text, photo, video, audio
 
     var title: String {
@@ -29,6 +29,21 @@ enum MessageType {
             return "video"
         case .audio:
             return "audio"
+        }
+    }
+
+    var icon: String? {
+        switch self {
+        case .admin:
+            return "megaphone.fill"
+        case .text:
+            return nil
+        case .photo:
+            return "photo.fill"
+        case .video:
+            return "video.fill"
+        case .audio:
+            return "mic.fill"
         }
     }
 
@@ -53,14 +68,14 @@ enum MessageType {
 }
 
 extension MessageType: Equatable {
-    static func ==(lhs: MessageType, rhs: MessageType) -> Bool {
+    static func == (lhs: MessageType, rhs: MessageType) -> Bool {
         switch (lhs, rhs) {
         case let (.admin(leftAdmin), .admin(rightAdmin)):
             return leftAdmin == rightAdmin
         case (.text, .text),
-            (.photo, .photo),
-            (.video, .video),
-            (.audio, .audio):
+             (.photo, .photo),
+             (.video, .video),
+             (.audio, .audio):
             return true
         default:
             return false
