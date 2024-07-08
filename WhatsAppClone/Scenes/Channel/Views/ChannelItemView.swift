@@ -36,10 +36,17 @@ struct ChannelItemView: View {
     }
 
     private var lastMessagePreview: some View {
-        Text(channel.lastMessage)
-            .font(.system(size: 16))
-            .lineLimit(2)
-            .foregroundStyle(.gray)
+        HStack(spacing: 4) {
+            if let icon = channel.lastMessageType.icon {
+                Image(systemName: icon)
+                    .imageScale(.small)
+                    .foregroundStyle(.gray)
+            }
+            Text(channel.previewMessage)
+                .font(.system(size: 16))
+                .lineLimit(2)
+                .foregroundStyle(.gray)
+        }
     }
 }
 
