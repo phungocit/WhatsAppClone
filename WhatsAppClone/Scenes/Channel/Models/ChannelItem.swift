@@ -11,7 +11,7 @@ import Foundation
 struct ChannelItem: Identifiable, Hashable {
     var id: String
     var name: String?
-    var lastMessage: String
+    private var lastMessage: String
     var creationDate: Date
     var lastMessageTimeStamp: Date
     var membersCount: Int
@@ -19,6 +19,7 @@ struct ChannelItem: Identifiable, Hashable {
     var membersUids: [String]
     var members: [UserItem]
     let createdBy: String
+    let lastMessageType: MessageType
 
     var isGroupChat: Bool {
         membersCount > 2
@@ -65,7 +66,22 @@ struct ChannelItem: Identifiable, Hashable {
         members.count == membersCount
     }
 
-    static let placeholder = ChannelItem(id: "1", lastMessage: "Hello world", creationDate: Date(), lastMessageTimeStamp: Date(), membersCount: 2, adminUids: [], membersUids: [], members: [], createdBy: "")
+    var previewMessage: String {
+        switch lastMessageType {
+        case .admin:
+            return "Newly created chat!"
+        case .text:
+            return lastMessage
+        case .photo:
+            return "Photo message"
+        case .video:
+            return "Video message"
+        case .audio:
+            return "Voice message"
+        }
+    }
+
+    static let placeholder = ChannelItem(id: "1", lastMessage: "Hello world", creationDate: Date(), lastMessageTimeStamp: Date(), membersCount: 2, adminUids: [], membersUids: [], members: [], createdBy: "", lastMessageType: .text)
 
     private var thumbnailUrl: String?
 
@@ -88,19 +104,21 @@ struct ChannelItem: Identifiable, Hashable {
 
 extension ChannelItem {
     init(_ dict: [String: Any]) {
-        self.id = dict[.id] as? String ?? ""
-        self.name = dict[.name] as? String? ?? nil
-        self.lastMessage = dict[.lastMessage] as? String ?? ""
+        id = dict[.id] as? String ?? ""
+        name = dict[.name] as? String? ?? nil
+        lastMessage = dict[.lastMessage] as? String ?? ""
         let creationInterval = dict[.creationDate] as? Double ?? 0
-        self.creationDate = Date(timeIntervalSince1970: creationInterval)
+        creationDate = Date(timeIntervalSince1970: creationInterval)
         let lastMsgTimeStampInterval = dict[.lastMessageTimeStamp] as? Double ?? 0
-        self.lastMessageTimeStamp = Date(timeIntervalSince1970: lastMsgTimeStampInterval)
-        self.membersCount = dict[.membersCount] as? Int ?? 0
-        self.adminUids = dict[.adminUids] as? [String] ?? []
-        self.thumbnailUrl = dict[.thumbnailUrl] as? String ?? nil
-        self.membersUids = dict[.membersUids] as? [String] ?? []
-        self.members = dict[.members] as? [UserItem] ?? []
-        self.createdBy = dict[.createdBy] as? String ?? ""
+        lastMessageTimeStamp = Date(timeIntervalSince1970: lastMsgTimeStampInterval)
+        membersCount = dict[.membersCount] as? Int ?? 0
+        adminUids = dict[.adminUids] as? [String] ?? []
+        thumbnailUrl = dict[.thumbnailUrl] as? String ?? nil
+        membersUids = dict[.membersUids] as? [String] ?? []
+        members = dict[.members] as? [UserItem] ?? []
+        createdBy = dict[.createdBy] as? String ?? ""
+        let msfTypeValue = dict[.lastMessageType] as? String ?? "text"
+        lastMessageType = MessageType(msfTypeValue) ?? .text
     }
 }
 
