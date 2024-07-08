@@ -341,6 +341,21 @@ final class ChatRoomViewModel: ObservableObject {
         return !message.timeStamp.isSameDay(as: priorMessage.timeStamp)
     }
 
+    func isShowSenderName(for message: MessageItem, at index: Int) -> Bool {
+        guard channel.isGroupChat else { return false }
+        let isNewDay = isNewDay(for: message, at: index)
+        let priorIndex = max(0, index - 1)
+        let priorMessage = messages[priorIndex]
+
+        if isNewDay {
+            /// If is not sent by current user and is a group chat
+            return !message.isSentByMe
+        } else {
+            /// If is not sent by current user and is a group chat and the message before this on is not sent by the same sender
+            return !message.isSentByMe && !message.containsSameOwner(as: priorMessage)
+        }
+    }
+
     private var dummyMessages: [MessageItem] {
         [
             MessageItem(id: "1", isGroupChat: false, text: "", type: .admin(AdminMessageType.channelCreation), ownerUid: "1", timeStamp: ISO8601DateFormatter().date(from: "2024-06-20 01: 55: 28 +0000") ?? Date(), sender: nil, thumbnailUrl: nil, thumbnailWidth: nil, thumbnailHeight: nil, videoURL: nil, audioURL: nil, audioDuration: nil),
