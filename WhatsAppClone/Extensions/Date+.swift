@@ -54,7 +54,7 @@ extension Date {
             return toString(format: "EEEE") // Monday
         }
         if isCurrentYear {
-            toString(format: "EEE, MMM d") // "Mon, Feb 10"
+            return toString(format: "EEE, MMM d") // "Mon, Feb 10"
         }
         return toString(format: "MMM dd, yyyy") // "Mon, Feb 10, 2000"
     }
