@@ -5,6 +5,7 @@
 //  Created by Phil Tran on 4/8/24.
 //
 
+import FirebaseDatabaseInternal
 import Foundation
 
 // MARK: Handles sending and fetching messages and setting reactions
@@ -87,6 +88,56 @@ struct MessageService {
             print("Failed to get messages for \(channel.title)")
         }
     }
+
+    static func getHistoricalMessages(
+        for channel: ChannelItem,
+        lastCursor: String?,
+        pageSize: UInt,
+        completion: @escaping (MessageNode) -> Void
+    ) {
+        let query: DatabaseQuery
+
+        if lastCursor == nil {
+            query = FirebaseConstants.MessagesRef.child(channel.id).queryLimited(toLast: pageSize)
+        } else {
+            query = FirebaseConstants.MessagesRef.child(channel.id)
+                .queryOrderedByKey()
+                .queryEnding(atValue: lastCursor)
+                .queryLimited(toLast: pageSize)
+        }
+
+        query.observeSingleEvent(of: .value) { mainSnapshot in
+            guard let first = mainSnapshot.children.allObjects.first as? DataSnapshot,
+                  let allObjects = mainSnapshot.children.allObjects as? [DataSnapshot] else {
+                return
+            }
+
+            var messages: [MessageItem] = allObjects.compactMap { messageSnapshot in
+                let messageDict = messageSnapshot.value as? [String: Any] ?? [:]
+                var message = MessageItem(id: messageSnapshot.key, isGroupChat: channel.isGroupChat, dict: messageDict)
+                let messageSender = channel.members.first { $0.uid == message.ownerUid }
+                message.sender = messageSender
+                return message
+            }
+
+            messages.sort { $0.timeStamp < $1.timeStamp }
+
+            if messages.count == mainSnapshot.childrenCount {
+                let filterMessages = lastCursor == nil ? messages : messages.filter { $0.id != lastCursor }
+                let messageNode = MessageNode(messages: filterMessages, currentCursor: first.key)
+                completion(messageNode)
+            }
+        } withCancel: { error in
+            print("Failed to get messages for channel \(String(describing: channel.name)):", error)
+            completion(.emptyNode)
+        }
+    }
+}
+
+struct MessageNode {
+    var messages: [MessageItem]
+    var currentCursor: String?
+    static let emptyNode = MessageNode(messages: [], currentCursor: nil)
 }
 
 struct MessageUploadParams {
