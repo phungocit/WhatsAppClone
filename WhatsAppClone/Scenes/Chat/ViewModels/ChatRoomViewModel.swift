@@ -18,9 +18,11 @@ final class ChatRoomViewModel: ObservableObject {
     @Published var mediaAttachments = [MediaAttachment]()
     @Published var videoPlayerState: (show: Bool, player: AVPlayer?) = (false, nil)
     @Published var isRecodingVoiceMessage = false
+    @Published var isPaginating = false
     @Published var elapsedVoiceMessageTime: TimeInterval = 0
     @Published var scrollToBottomRequest: (scroll: Bool, isAnimated: Bool) = (false, false)
 
+    private var currentPage: String?
     private(set) var channel: ChannelItem
     private var subscriptions = Set<AnyCancellable>()
     private var currentUser: UserItem?
@@ -215,14 +217,16 @@ final class ChatRoomViewModel: ObservableObject {
         }
     }
 
-    private func getMessages() {
+    func getMessages() {
 //        messages = dummyMessages
 //        scrollToBottom(isAnimated: false)
 
-        MessageService.getMessages(for: channel) { [weak self] messages in
-            self?.messages = messages
+        isPaginating = currentPage != nil
+        MessageService.getHistoricalMessages(for: channel, lastCursor: currentPage, pageSize: 10) { [weak self] messageNode in
+            self?.messages.insert(contentsOf: messageNode.messages, at: 0)
+            self?.currentPage = messageNode.currentCursor
             self?.scrollToBottom(isAnimated: false)
-            print("messages: \(messages.map { $0.text })")
+            self?.isPaginating = false
         }
     }
 
