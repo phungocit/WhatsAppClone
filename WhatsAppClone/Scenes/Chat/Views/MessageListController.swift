@@ -38,6 +38,7 @@ final class MessageListController: UIViewController {
     private let viewModel: ChatRoomViewModel
     private var subscriptions = Set<AnyCancellable>()
     private let cellIdentifier = "MessageListControllerCells"
+    private var lastScrollPosition: String?
 
     private let compositionalLayout = UICollectionViewCompositionalLayout { _, layoutEnvironment in
         var listConfig = UICollectionLayoutListConfiguration(appearance: .plain)
@@ -114,10 +115,25 @@ final class MessageListController: UIViewController {
                 }
             }
             .store(in: &subscriptions)
+
+        viewModel.$isPaginating
+            .debounce(for: .milliseconds(delay), scheduler: DispatchQueue.main)
+            .sink { [weak self] isPaginating in
+                guard let self, let lastScrollPosition else { return }
+                if !isPaginating {
+                    guard let index = viewModel.messages.firstIndex(where: { $0.id == lastScrollPosition }) else { return }
+                    let indexPath = IndexPath(item: index, section: 0)
+                    self.messageCollectionView.scrollToItem(at: indexPath, at: .top, animated: false)
+                    self.pullToRefresh.endRefreshing()
+                }
+            }
+            .store(in: &subscriptions)
     }
 
     @objc private func refreshData() {
+        lastScrollPosition = viewModel.messages.first?.id
         messageCollectionView.refreshControl?.endRefreshing()
+        viewModel.getMessages()
     }
 }
 
