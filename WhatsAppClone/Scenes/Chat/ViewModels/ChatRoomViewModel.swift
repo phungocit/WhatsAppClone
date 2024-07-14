@@ -23,6 +23,7 @@ final class ChatRoomViewModel: ObservableObject {
     @Published var scrollToBottomRequest: (scroll: Bool, isAnimated: Bool) = (false, false)
 
     private var currentPage: String?
+    private var firstMessage: MessageItem?
     private(set) var channel: ChannelItem
     private var subscriptions = Set<AnyCancellable>()
     private var currentUser: UserItem?
@@ -57,7 +58,7 @@ final class ChatRoomViewModel: ObservableObject {
             case let .loggedIn(currentUser):
                 self.currentUser = currentUser
                 if self.channel.allMembersFetched {
-                    self.getMessages()
+                    self.paginateMoreMessages()
                     print("channel members: \(channel.members.map { $0.username })")
                 } else {
                     self.getAllChannelMembers()
@@ -217,16 +218,46 @@ final class ChatRoomViewModel: ObservableObject {
         }
     }
 
-    func getMessages() {
+    var isPaginatable: Bool {
+        currentPage != firstMessage?.id
+    }
+
+    func paginateMoreMessages() {
+        guard isPaginatable else {
+            isPaginating = false
+            return
+        }
+        getHistoricalMessages()
+    }
+
+    private func getHistoricalMessages() {
 //        messages = dummyMessages
 //        scrollToBottom(isAnimated: false)
 
         isPaginating = currentPage != nil
         MessageService.getHistoricalMessages(for: channel, lastCursor: currentPage, pageSize: 10) { [weak self] messageNode in
+            /// If it is the initial data pull
+            if self?.currentPage == nil {
+                self?.getFirstMessage()
+//                self?.listenForNewMessages()
+            }
             self?.messages.insert(contentsOf: messageNode.messages, at: 0)
             self?.currentPage = messageNode.currentCursor
             self?.scrollToBottom(isAnimated: false)
             self?.isPaginating = false
+        }
+    }
+
+    private func listenForNewMessages() {
+        MessageService.listenForNewMessages(in: channel) { [weak self] newMessage in
+            self?.messages.append(newMessage)
+            self?.scrollToBottom(isAnimated: false)
+        }
+    }
+
+    private func getFirstMessage() {
+        MessageService.getFirstMessage(in: channel) { [weak self] firstMessage in
+            self?.firstMessage = firstMessage
         }
     }
 
@@ -240,7 +271,7 @@ final class ChatRoomViewModel: ObservableObject {
         UserService.getUsers(with: memberUIDSToFetch) { [weak self] userNode in
             guard let self = self else { return }
             self.channel.members.append(contentsOf: userNode.users)
-            self.getMessages()
+            self.getHistoricalMessages()
             print("getAllChannelMembers: \(channel.members.map { $0.username })")
         }
     }
