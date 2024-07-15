@@ -2,7 +2,7 @@
 //  ChatRoomViewModel.swift
 //  WhatsAppClone
 //
-//  Created by Phil Tran on 4/8/24.
+//  Created by Foo Tran on 4/8/24.
 //
 
 import Combine
