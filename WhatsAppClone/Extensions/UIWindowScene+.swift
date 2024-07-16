@@ -2,7 +2,7 @@
 //  UIWindowScene+.swift
 //  WhatsAppClone
 //
-//  Created by Foo Tran on 19/6/24.
+//  Created by Phil Tran on 19/6/24.
 //
 
 import UIKit
