@@ -2,7 +2,7 @@
 //  PhotosPickerItem+.swift
 //  WhatsAppClone
 //
-//  Created by Foo Tran on 4/22/24.
+//  Created by Phil Tran on 4/22/24.
 //
 
 import Foundation
