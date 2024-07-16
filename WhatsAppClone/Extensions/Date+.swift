@@ -2,7 +2,7 @@
 //  Date+.swift
 //  WhatsAppClone
 //
-//  Created by Foo Tran on 4/14/24.
+//  Created by Phil Tran on 4/14/24.
 //
 
 import Foundation
