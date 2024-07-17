@@ -190,7 +190,6 @@ extension MessageListController: UICollectionViewDelegate, UICollectionViewDataS
     }
 
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        print("scrollView")
         if scrollView.contentOffset.y <= 0 {
             pullDownHUDView.alpha = viewModel.isPaginatable ? 1 : 0
         } else {
