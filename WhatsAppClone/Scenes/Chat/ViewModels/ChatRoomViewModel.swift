@@ -58,7 +58,7 @@ final class ChatRoomViewModel: ObservableObject {
             case let .loggedIn(currentUser):
                 self.currentUser = currentUser
                 if self.channel.allMembersFetched {
-                    self.paginateMoreMessages()
+                    self.getHistoricalMessages()
                     print("channel members: \(channel.members.map { $0.username })")
                 } else {
                     self.getAllChannelMembers()
@@ -85,34 +85,38 @@ final class ChatRoomViewModel: ObservableObject {
     }
 
     func sendMessage() {
-        guard let currentUser else { return }
         if mediaAttachments.isEmpty {
-            MessageService.sendTextMessage(to: channel, from: currentUser, textMessage) { [weak self] in
-                self?.textMessage = ""
-                self?.scrollToBottom(isAnimated: true)
-            }
+            sendTextMessage(textMessage)
         } else {
             sendMultipleMediaMessages(textMessage, attachments: mediaAttachments)
             clearTextInputArea()
         }
     }
 
+    private func sendTextMessage(_ text: String) {
+        guard let currentUser else { return }
+        MessageService.sendTextMessage(to: channel, from: currentUser, text) { [weak self] in
+            self?.textMessage = ""
+        }
+    }
+
     private func clearTextInputArea() {
+        textMessage = ""
         mediaAttachments.removeAll()
         photoPickerItems.removeAll()
-        textMessage = ""
         UIApplication.dismissKeyboard()
     }
 
     private func sendMultipleMediaMessages(_ text: String, attachments: [MediaAttachment]) {
-        mediaAttachments.forEach { attachment in
+        for (index, attachment) in attachments.enumerated() {
+            let textMessage = index == 0 ? text : ""
             switch attachment.type {
             case .photo:
-                sendPhotoMessage(text: text, attachment)
+                sendPhotoMessage(text: textMessage, attachment)
             case .video:
-                sendVideoMessage(text: text, attachment)
+                sendVideoMessage(text: textMessage, attachment)
             case .audio:
-                sendAudioMessage(text: text, attachment)
+                sendAudioMessage(text: textMessage, attachment)
             }
         }
     }
@@ -179,6 +183,10 @@ final class ChatRoomViewModel: ObservableObject {
             MessageService.sendMediaMessage(to: self.channel, params: uploadParams) { [weak self] in
                 self?.scrollToBottom(isAnimated: true)
             }
+
+            if !text.isEmptyOrWhiteSpace {
+                self.sendTextMessage(text)
+            }
         }
     }
 
@@ -235,11 +243,11 @@ final class ChatRoomViewModel: ObservableObject {
 //        scrollToBottom(isAnimated: false)
 
         isPaginating = currentPage != nil
-        MessageService.getHistoricalMessages(for: channel, lastCursor: currentPage, pageSize: 10) { [weak self] messageNode in
+        MessageService.getHistoricalMessages(for: channel, lastCursor: currentPage, pageSize: 15) { [weak self] messageNode in
             /// If it is the initial data pull
             if self?.currentPage == nil {
                 self?.getFirstMessage()
-//                self?.listenForNewMessages()
+                self?.listenForNewMessages()
             }
             self?.messages.insert(contentsOf: messageNode.messages, at: 0)
             self?.currentPage = messageNode.currentCursor
