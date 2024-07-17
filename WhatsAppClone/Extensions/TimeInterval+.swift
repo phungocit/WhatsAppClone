@@ -2,7 +2,7 @@
 //  TimeInterval+.swift
 //  WhatsAppClone
 //
-//  Created by Phil Tran on 4/26/24.
+//  Created by Foo Tran on 4/26/24.
 //
 
 import Foundation
