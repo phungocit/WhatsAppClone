@@ -5,15 +5,23 @@
 //  Created by Phil Tran on 3/13/24.
 //
 
+import PhotosUI
 import SwiftUI
 
 struct SettingsTabView: View {
+    @StateObject private var viewModel = SettingTabViewModel()
     @State private var searchText = ""
+
+    private let currentUser: UserItem
+
+    init(_ currentUser: UserItem) {
+        self.currentUser = currentUser
+    }
 
     var body: some View {
         NavigationStack {
             List {
-                SettingsHeaderView()
+                SettingsHeaderView(viewModel, currentUser: currentUser)
 
                 Section {
                     SettingsItemView(item: .broadCastLists)
@@ -38,7 +46,12 @@ struct SettingsTabView: View {
             .searchable(text: $searchText)
             .toolbar {
                 leadingNavItem
+                if viewModel.enableSaveButton {
+                    trailingNavItem
+                }
             }
+            .alert(isPresent: $viewModel.isShowProgressHUD, view: viewModel.progressHUDView)
+            .alert(isPresent: $viewModel.isShowSuccessHUD, view: viewModel.successHUDView)
         }
     }
 }
@@ -55,24 +68,57 @@ extension SettingsTabView {
             .foregroundStyle(.red)
         }
     }
+
+    @ToolbarContentBuilder
+    private var trailingNavItem: some ToolbarContent {
+        ToolbarItem(placement: .topBarTrailing) {
+            Button("Save") {
+                viewModel.uploadProfilePhoto()
+            }
+            .bold()
+        }
+    }
 }
 
 private struct SettingsHeaderView: View {
+    @ObservedObject private var viewModel: SettingTabViewModel
+
+    private let currentUser: UserItem
+
+    init(_ viewModel: SettingTabViewModel, currentUser: UserItem) {
+        self.viewModel = viewModel
+        self.currentUser = currentUser
+    }
+
     var body: some View {
         Section {
             HStack {
-                Circle()
-                    .frame(width: 55, height: 55)
+                profileImageView
                 userInfoTextView
             }
-            SettingsItemView(item: .avatar)
+            PhotosPicker(selection: $viewModel.selectedPhotoItem, matching: .not(.videos)) {
+                SettingsItemView(item: .avatar)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var profileImageView: some View {
+        if let profilePhoto = viewModel.profilePhoto {
+            Image(uiImage: profilePhoto.thumbnail)
+                .resizable()
+                .scaledToFill()
+                .frame(width: 55, height: 55)
+                .clipShape(Circle())
+        } else {
+            CircularProfileImageView(currentUser.profileImageUrl, size: .custom(55))
         }
     }
 
     private var userInfoTextView: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
-                Text("Qa User 13")
+                Text(currentUser.username)
                     .font(.title2)
 
                 Spacer()
@@ -85,7 +131,7 @@ private struct SettingsHeaderView: View {
                     .clipShape(Circle())
             }
 
-            Text("Hey there! I am using WhatsApp")
+            Text(currentUser.bioUnwrapped)
                 .foregroundStyle(.gray)
                 .font(.callout)
         }
@@ -94,5 +140,5 @@ private struct SettingsHeaderView: View {
 }
 
 #Preview {
-    SettingsTabView()
+    SettingsTabView(.placeholder)
 }
