@@ -43,7 +43,7 @@ struct MainTabView: View {
                     Text(Tab.communities.title)
                 }
 
-            SettingsTabView()
+            SettingsTabView(currentUser)
                 .tabItem {
                     Image(systemName: Tab.settings.icon)
                     Text(Tab.settings.title)
