@@ -17,16 +17,24 @@ final class SettingTabViewModel: ObservableObject {
     @Published var profilePhoto: MediaAttachment?
     @Published var isShowProgressHUD = false
     @Published var isShowSuccessHUD = false
+    @Published var isShowUserInfoEditor = false
+    @Published var name = ""
+    @Published var bio = ""
 
     var enableSaveButton: Bool {
-        profilePhoto != nil
+        profilePhoto != nil && !isShowProgressHUD
     }
+
+    private var currentUser: UserItem
 
     private(set) var progressHUDView = AlertAppleMusic17View(title: "Uploading profile photo", subtitle: nil, icon: .spinnerSmall)
     private(set) var successHUDView = AlertAppleMusic17View(title: "Profile info updated", subtitle: nil, icon: .done)
     private var subscription: AnyCancellable?
 
-    init() {
+    init(_ currentUser: UserItem) {
+        self.currentUser = currentUser
+        name = currentUser.username
+        bio = currentUser.bioUnwrapped
         onPhotoPickerSelection()
     }
 
@@ -42,6 +50,21 @@ final class SettingTabViewModel: ObservableObject {
             }
         } progressHandler: { _ in
         }
+    }
+
+    func updateUsernameAndBio() {
+        guard let currentUid = Auth.auth().currentUser?.uid else { return }
+        var dict: [String: Any] = [.bio: bio]
+        currentUser.bio = bio
+
+        if !name.isEmptyOrWhiteSpace {
+            dict[.username] = name
+            currentUser.username = name
+        }
+
+        FirebaseConstants.UserRef.child(currentUid).updateChildValues(dict)
+        isShowSuccessHUD = true
+        AuthManager.shared.authState.send(.loggedIn(currentUser))
     }
 }
 
@@ -68,6 +91,8 @@ extension SettingTabViewModel {
         FirebaseConstants.UserRef.child(currentUid).child(.profileImageUrl).setValue(imageUrl.absoluteString)
         isShowProgressHUD = false
         progressHUDView.dismiss()
+        currentUser.profileImageUrl = imageUrl.absoluteString
+        AuthManager.shared.authState.send(.loggedIn(currentUser))
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
             self.profilePhoto = nil
             self.selectedPhotoItem = nil
