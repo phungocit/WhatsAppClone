@@ -9,13 +9,14 @@ import PhotosUI
 import SwiftUI
 
 struct SettingsTabView: View {
-    @StateObject private var viewModel = SettingTabViewModel()
+    @StateObject private var viewModel: SettingTabViewModel
     @State private var searchText = ""
 
     private let currentUser: UserItem
 
     init(_ currentUser: UserItem) {
         self.currentUser = currentUser
+        _viewModel = .init(wrappedValue: .init(currentUser))
     }
 
     var body: some View {
@@ -52,6 +53,16 @@ struct SettingsTabView: View {
             }
             .alert(isPresent: $viewModel.isShowProgressHUD, view: viewModel.progressHUDView)
             .alert(isPresent: $viewModel.isShowSuccessHUD, view: viewModel.successHUDView)
+            .alert("Update your profile", isPresented: $viewModel.isShowUserInfoEditor) {
+                TextField("Username", text: $viewModel.name)
+                TextField("Bio", text: $viewModel.bio)
+                Button("Update") {
+                    viewModel.updateUsernameAndBio()
+                }
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                Text("Enter your new username or bio")
+            }
         }
     }
 }
@@ -95,6 +106,9 @@ private struct SettingsHeaderView: View {
             HStack {
                 profileImageView
                 userInfoTextView
+                    .onTapGesture {
+                        viewModel.isShowUserInfoEditor.toggle()
+                    }
             }
             PhotosPicker(selection: $viewModel.selectedPhotoItem, matching: .not(.videos)) {
                 SettingsItemView(item: .avatar)
