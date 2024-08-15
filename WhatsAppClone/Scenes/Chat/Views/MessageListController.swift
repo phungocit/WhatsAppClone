@@ -39,6 +39,10 @@ final class MessageListController: UIViewController {
     private var subscriptions = Set<AnyCancellable>()
     private let cellIdentifier = "MessageListControllerCells"
     private var lastScrollPosition: String?
+    private var startingFrame: CGRect?
+    private var blurView: UIVisualEffectView?
+    private var focusedView: UIView?
+    private var highlightedCell: UICollectionViewCell?
 
     private let compositionalLayout = UICollectionViewCompositionalLayout { _, layoutEnvironment in
         var listConfig = UICollectionLayoutListConfiguration(appearance: .plain)
@@ -116,7 +120,7 @@ final class MessageListController: UIViewController {
             messageCollectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
 
             pullDownHUDView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
-            pullDownHUDView.centerXAnchor.constraint(equalTo: view.centerXAnchor)
+            pullDownHUDView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
         ])
     }
 
@@ -179,6 +183,40 @@ extension MessageListController: UICollectionViewDelegate, UICollectionViewDataS
     }
 
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        guard let selectedCell = collectionView.cellForItem(at: indexPath) else { return }
+        startingFrame = selectedCell.superview?.convert(selectedCell.frame, to: nil)
+
+        guard let snapshotView = selectedCell.snapshotView(afterScreenUpdates: false) else { return }
+
+        focusedView = UIView(frame: startingFrame ?? .zero)
+        guard let focusedView else { return }
+        focusedView.isUserInteractionEnabled = false
+
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissContextMenu))
+        let blurEffect = UIBlurEffect(style: .regular)
+
+        blurView = UIVisualEffectView(effect: blurEffect)
+        guard let blurView else { return }
+
+        blurView.contentView.isUserInteractionEnabled = true
+        blurView.contentView.addGestureRecognizer(tapGesture)
+        blurView.alpha = 0
+        highlightedCell = selectedCell
+        highlightedCell?.alpha = 0
+
+        guard let keyWindow = UIWindowScene.current?.keyWindow else { return }
+
+        keyWindow.addSubview(blurView)
+        keyWindow.addSubview(focusedView)
+        focusedView.addSubview(snapshotView)
+        blurView.frame = keyWindow.frame
+
+        UIView.animate(withDuration: 0.6, delay: 0, usingSpringWithDamping: 0.7, initialSpringVelocity: 1, options: .curveEaseIn) {
+            blurView.alpha = 1
+            focusedView.center.y = keyWindow.center.y
+            snapshotView.frame = focusedView.bounds
+        }
+
         UIApplication.dismissKeyboard()
         let messageItem = viewModel.messages[indexPath.row]
         switch messageItem.type {
@@ -186,6 +224,21 @@ extension MessageListController: UICollectionViewDelegate, UICollectionViewDataS
             guard let videoURLString = messageItem.videoURL, let url = URL(string: videoURLString) else { return }
             viewModel.showMediaPlayer(url)
         default: break
+        }
+    }
+
+    @objc private func dismissContextMenu() {
+        UIView.animate(withDuration: 0.6, delay: 0, usingSpringWithDamping: 0.8, initialSpringVelocity: 1, options: .curveEaseOut) { [weak self] in
+            guard let self else { return }
+            focusedView?.frame = startingFrame ?? .zero
+            blurView?.alpha = 0
+        } completion: { [weak self] _ in
+            self?.highlightedCell?.alpha = 1
+            self?.blurView?.removeFromSuperview()
+            self?.focusedView?.removeFromSuperview()
+            self?.highlightedCell = nil
+            self?.blurView = nil
+            self?.focusedView = nil
         }
     }
 
