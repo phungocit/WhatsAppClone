@@ -22,13 +22,6 @@ final class ChatRoomViewModel: ObservableObject {
     @Published var elapsedVoiceMessageTime: TimeInterval = 0
     @Published var scrollToBottomRequest: (scroll: Bool, isAnimated: Bool) = (false, false)
 
-    private var currentPage: String?
-    private var firstMessage: MessageItem?
-    private(set) var channel: ChannelItem
-    private var subscriptions = Set<AnyCancellable>()
-    private var currentUser: UserItem?
-    private let voiceRecorderService = VoiceRecorderService()
-
     var showPhotoPickerPreview: Bool {
         !mediaAttachments.isEmpty || !photoPickerItems.isEmpty
     }
@@ -37,11 +30,26 @@ final class ChatRoomViewModel: ObservableObject {
         mediaAttachments.isEmpty && textMessage.isEmptyOrWhiteSpace
     }
 
+    private var isPreviewMode: Bool {
+        ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1"
+    }
+
+    private var currentPage: String?
+    private var firstMessage: MessageItem?
+    private(set) var channel: ChannelItem
+    private var subscriptions = Set<AnyCancellable>()
+    private var currentUser: UserItem?
+    private let voiceRecorderService = VoiceRecorderService()
+
     init(_ channel: ChannelItem) {
         self.channel = channel
         listenToAuthState()
         onPhotoPickerSelection()
         setUpVoiceRecorderListeners()
+
+        if isPreviewMode {
+            messages = MessageItem.stubMessages
+        }
     }
 
     deinit {
