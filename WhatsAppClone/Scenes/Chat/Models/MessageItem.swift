@@ -9,6 +9,10 @@ import Firebase
 import SwiftUI
 
 struct MessageItem: Identifiable {
+    typealias userId = String
+    typealias emoji = String
+    typealias emojiCount = Int
+
     let id: String
     let isGroupChat: Bool
     let text: String
@@ -22,6 +26,8 @@ struct MessageItem: Identifiable {
     var videoURL: String?
     var audioURL: String?
     var audioDuration: TimeInterval?
+    var reactions: [emoji: emojiCount] = [:]
+    var userReactions: [userId: emoji] = [:]
 
     var direction: MessageDirection {
         ownerUid == Auth.auth().currentUser?.uid ? .sent : .received
@@ -73,6 +79,28 @@ struct MessageItem: Identifiable {
         ownerUid == Auth.auth().currentUser?.uid ?? ""
     }
 
+    var menuAnchor: UnitPoint {
+        direction == .received ? .leading : .trailing
+    }
+
+    var reactionAnchor: Alignment {
+        direction == .sent ? .bottomTrailing : .bottomLeading
+    }
+
+    var hasReactions: Bool {
+        !reactions.isEmpty
+    }
+
+    var currentUserHasReacted: Bool {
+        guard let currentUid = Auth.auth().currentUser?.uid else { return false }
+        return userReactions.contains { $0.key == currentUid }
+    }
+
+    var currentUserReaction: String? {
+        guard let currentUid = Auth.auth().currentUser?.uid else { return nil }
+        return userReactions[currentUid]
+    }
+
     func containsSameOwner(as message: MessageItem) -> Bool {
         if let userA = message.sender, let userB = sender {
             return userA == userB
@@ -107,6 +135,8 @@ extension MessageItem {
         thumbnailHeight = dict[.thumbnailHeight] as? CGFloat ?? nil
         audioURL = dict[.audioURL] as? String ?? nil
         audioDuration = dict[.audioDuration] as? TimeInterval ?? nil
+        reactions = dict[.reactions] as? [emoji: emojiCount] ?? [:]
+        userReactions = dict[.userReactions] as? [userId: emoji] ?? [:]
     }
 }
 
@@ -120,4 +150,6 @@ extension String {
     static let videoURL = "videoURL"
     static let audioURL = "audioURL"
     static let audioDuration = "audioDuration"
+    static let reactions = "reactions"
+    static let userReactions = "userReactions"
 }

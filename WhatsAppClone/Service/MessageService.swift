@@ -156,13 +156,48 @@ struct MessageService {
     static func listenForNewMessages(in channel: ChannelItem, completion: @escaping (MessageItem) -> Void) {
         FirebaseConstants.MessagesRef.child(channel.id)
             .queryLimited(toLast: 1)
-            .observe(.childAdded) { snapshot  in
+            .observe(.childAdded) { snapshot in
                 guard let messageDict = snapshot.value as? [String: Any] else { return }
                 var newMessage = MessageItem(id: snapshot.key, isGroupChat: channel.isGroupChat, dict: messageDict)
                 let messageSender = channel.members.first { $0.uid == newMessage.ownerUid }
                 newMessage.sender = messageSender
                 completion(newMessage)
             }
+    }
+
+    static func increaseCountViaTransaction(at ref: DatabaseReference, completion: ((Int) -> Void)? = nil) {
+        ref.runTransactionBlock { currentData in
+            if var count = currentData.value as? Int {
+                count += 1
+                currentData.value = count
+            } else {
+                currentData.value = 1
+            }
+            completion?(currentData.value as? Int ?? 0)
+            return TransactionResult.success(withValue: currentData)
+        }
+    }
+
+    static func addReaction(
+        _ reaction: Reaction,
+        to message: MessageItem,
+        in channel: ChannelItem,
+        from currentUser: UserItem,
+        completion: @escaping (_ emojiCount: Int) -> Void
+    ) {
+        // Increment emoji reactions count
+        let reactionsRef = FirebaseConstants.MessagesRef.child(channel.id).child(message.id).child(.reactions).child(reaction.emoji)
+        increaseCountViaTransaction(at: reactionsRef) { emojiCount in
+            // Add current user emoji to userReactions node
+            FirebaseConstants.MessagesRef
+                .child(channel.id)
+                .child(message.id)
+                .child(.userReactions)
+                .child(currentUser.uid)
+                .setValue(reaction.emoji)
+
+            completion(emojiCount)
+        }
     }
 }
 

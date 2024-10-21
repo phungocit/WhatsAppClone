@@ -15,6 +15,9 @@
 		478385A12C2338EA000AF4F0 /* UIApplication+.swift in Sources */ = {isa = PBXBuildFile; fileRef = 478385A02C2338EA000AF4F0 /* UIApplication+.swift */; };
 		478385A32C233A52000AF4F0 /* UIWindowScene+.swift in Sources */ = {isa = PBXBuildFile; fileRef = 478385A22C233A52000AF4F0 /* UIWindowScene+.swift */; };
 		47924F112C26B34700072E2F /* VoiceMessagePlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47924F102C26B34700072E2F /* VoiceMessagePlayer.swift */; };
+		479427302CC49C0C00BCC953 /* ReactionPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4794272F2CC49C0C00BCC953 /* ReactionPickerView.swift */; };
+		479427322CC4A8DA00BCC953 /* MessageMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 479427312CC4A8DA00BCC953 /* MessageMenuView.swift */; };
+		479427342CC4E5E000BCC953 /* MessageReactionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 479427332CC4E5E000BCC953 /* MessageReactionView.swift */; };
 		47F9D2112C306B020060B5F8 /* Haptic.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47F9D2102C306B020060B5F8 /* Haptic.swift */; };
 		ADDA72932C241F2C00173136 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = ADDA72922C241F2C00173136 /* LaunchScreen.storyboard */; };
 		ADDA72952C24202300173136 /* LaunchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADDA72942C24202300173136 /* LaunchView.swift */; };
@@ -91,6 +94,9 @@
 		478385A02C2338EA000AF4F0 /* UIApplication+.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIApplication+.swift"; sourceTree = "<group>"; };
 		478385A22C233A52000AF4F0 /* UIWindowScene+.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIWindowScene+.swift"; sourceTree = "<group>"; };
 		47924F102C26B34700072E2F /* VoiceMessagePlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceMessagePlayer.swift; sourceTree = "<group>"; };
+		4794272F2CC49C0C00BCC953 /* ReactionPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReactionPickerView.swift; sourceTree = "<group>"; };
+		479427312CC4A8DA00BCC953 /* MessageMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageMenuView.swift; sourceTree = "<group>"; };
+		479427332CC4E5E000BCC953 /* MessageReactionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageReactionView.swift; sourceTree = "<group>"; };
 		47DA307C2C1E7B9600E80E1F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		47F9D2102C306B020060B5F8 /* Haptic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Haptic.swift; sourceTree = "<group>"; };
 		ADDA72922C241F2C00173136 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
@@ -340,6 +346,9 @@
 				B501B3F12BA3745C00AADB33 /* TextInputAreaView.swift */,
 				B501B3F32BA3859400AADB33 /* MessageListController.swift */,
 				B501B3F52BA3874200AADB33 /* MessageListView.swift */,
+				4794272F2CC49C0C00BCC953 /* ReactionPickerView.swift */,
+				479427312CC4A8DA00BCC953 /* MessageMenuView.swift */,
+				479427332CC4E5E000BCC953 /* MessageReactionView.swift */,
 				47668FF52C38DF0700CFBB5C /* BubbleView.swift */,
 				B501B3FA2BA39B5C00AADB33 /* BubbleTextView.swift */,
 				B501B3FC2BA39E5700AADB33 /* BubbleTailView.swift */,
@@ -653,6 +662,7 @@
 				B501B41D2BA8B8D500AADB33 /* AuthButtonView.swift in Sources */,
 				B501B3D12B9FF04F00AADB33 /* CallsTabView.swift in Sources */,
 				47F9D2112C306B020060B5F8 /* Haptic.swift in Sources */,
+				479427322CC4A8DA00BCC953 /* MessageMenuView.swift in Sources */,
 				B501B42F2BA905FC00AADB33 /* UserItem.swift in Sources */,
 				B52470A72BAE252A005797E9 /* ChannelTabViewModel.swift in Sources */,
 				478385A12C2338EA000AF4F0 /* UIApplication+.swift in Sources */,
@@ -671,6 +681,7 @@
 				B54C8C582BC4A3F00032CB77 /* MessageService.swift in Sources */,
 				B501B3FD2BA39E5700AADB33 /* BubbleTailView.swift in Sources */,
 				B54C8C562BC4A21A0032CB77 /* ChatRoomViewModel.swift in Sources */,
+				479427302CC49C0C00BCC953 /* ReactionPickerView.swift in Sources */,
 				B52AEA922BD6BEBA00063784 /* MediaAttachmentPreview.swift in Sources */,
 				B52470A52BAE2154005797E9 /* ChannelItem.swift in Sources */,
 				B501B4292BA8F85E00AADB33 /* RootView.swift in Sources */,
@@ -683,6 +694,7 @@
 				B501B4042BA4CC9D00AADB33 /* BubbleImageView.swift in Sources */,
 				B501B3F62BA3874200AADB33 /* MessageListView.swift in Sources */,
 				B501B4172BA8B45D00AADB33 /* LoginView.swift in Sources */,
+				479427342CC4E5E000BCC953 /* MessageReactionView.swift in Sources */,
 				B52470AC2BB4AD5B005797E9 /* MessageItems+Types.swift in Sources */,
 				B501B3F02BA3712900AADB33 /* ChatRoomView.swift in Sources */,
 				B5E99E852BAA1B8B00D0072F /* ChatPartnerRowView.swift in Sources */,

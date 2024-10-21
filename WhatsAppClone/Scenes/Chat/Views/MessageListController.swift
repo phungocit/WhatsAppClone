@@ -13,10 +13,11 @@ import UIKit
 final class MessageListController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
-        messageCollectionView.backgroundColor = .clear
+        messagesCollectionView.backgroundColor = .clear
         view.backgroundColor = .clear
         setUpViews()
         setUpMessageListeners()
+        setUpLongPressGestureRecognizer()
     }
 
     init(_ viewModel: ChatRoomViewModel) {
@@ -43,6 +44,8 @@ final class MessageListController: UIViewController {
     private var blurView: UIVisualEffectView?
     private var focusedView: UIView?
     private var highlightedCell: UICollectionViewCell?
+    private var reactionHostVC: UIViewController?
+    private var messageMenuHostVC: UIViewController?
 
     private let compositionalLayout = UICollectionViewCompositionalLayout { _, layoutEnvironment in
         var listConfig = UICollectionLayoutListConfiguration(appearance: .plain)
@@ -68,7 +71,7 @@ final class MessageListController: UIViewController {
         return pullToRefresh
     }()
 
-    private lazy var messageCollectionView: UICollectionView = {
+    private lazy var messagesCollectionView: UICollectionView = {
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: compositionalLayout)
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         collectionView.dataSource = self
@@ -105,7 +108,7 @@ final class MessageListController: UIViewController {
     // MARK: Methods
     private func setUpViews() {
         view.addSubview(backgroundImageView)
-        view.addSubview(messageCollectionView)
+        view.addSubview(messagesCollectionView)
         view.addSubview(pullDownHUDView)
 
         NSLayoutConstraint.activate([
@@ -114,10 +117,10 @@ final class MessageListController: UIViewController {
             backgroundImageView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             backgroundImageView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
 
-            messageCollectionView.topAnchor.constraint(equalTo: view.topAnchor),
-            messageCollectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            messageCollectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            messageCollectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            messagesCollectionView.topAnchor.constraint(equalTo: view.topAnchor),
+            messagesCollectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            messagesCollectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            messagesCollectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
 
             pullDownHUDView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
             pullDownHUDView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
@@ -130,7 +133,7 @@ final class MessageListController: UIViewController {
         viewModel.$messages
             .debounce(for: .milliseconds(delay), scheduler: DispatchQueue.main)
             .sink { [weak self] _ in
-                self?.messageCollectionView.reloadData()
+                self?.messagesCollectionView.reloadData()
             }
             .store(in: &subscriptions)
 
@@ -138,7 +141,7 @@ final class MessageListController: UIViewController {
             .debounce(for: .milliseconds(delay), scheduler: DispatchQueue.main)
             .sink { [weak self] scrollRequest in
                 if scrollRequest.scroll {
-                    self?.messageCollectionView.scrollToLastItem(at: .bottom, animated: scrollRequest.isAnimated)
+                    self?.messagesCollectionView.scrollToLastItem(at: .bottom, animated: scrollRequest.isAnimated)
                 }
             }
             .store(in: &subscriptions)
@@ -150,7 +153,7 @@ final class MessageListController: UIViewController {
                 if !isPaginating {
                     guard let index = viewModel.messages.firstIndex(where: { $0.id == lastScrollPosition }) else { return }
                     let indexPath = IndexPath(item: index, section: 0)
-                    self.messageCollectionView.scrollToItem(at: indexPath, at: .top, animated: false)
+                    self.messagesCollectionView.scrollToItem(at: indexPath, at: .top, animated: false)
                     self.pullToRefresh.endRefreshing()
                 }
             }
@@ -159,7 +162,7 @@ final class MessageListController: UIViewController {
 
     @objc private func refreshData() {
         lastScrollPosition = viewModel.messages.first?.id
-//        messageCollectionView.refreshControl?.endRefreshing()
+//        messagesCollectionView.refreshControl?.endRefreshing()
         viewModel.paginateMoreMessages()
     }
 }
@@ -183,10 +186,119 @@ extension MessageListController: UICollectionViewDelegate, UICollectionViewDataS
     }
 
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        guard let selectedCell = collectionView.cellForItem(at: indexPath) else { return }
+        UIApplication.dismissKeyboard()
+        let messageItem = viewModel.messages[indexPath.row]
+        switch messageItem.type {
+        case .video:
+            guard let videoURLString = messageItem.videoURL, let url = URL(string: videoURLString) else { return }
+            viewModel.showMediaPlayer(url)
+        default: break
+        }
+    }
+
+    private func attachMenuActionItem(to message: MessageItem, in window: UIWindow, _ isNewDay: Bool) {
+        /// Convert a SwiftUI to UIKitView
+        guard let focusedView, let startingFrame else { return }
+        let shrinkCell = shrinkCell(startingFrame.height)
+
+        let reactionPickerView = ReactionPickerView(message: message) { [weak self] reaction in
+            self?.dismissContextMenu()
+            self?.viewModel.addReaction(reaction, to: message)
+        }
+        let reactionHostVC = UIHostingController(rootView: reactionPickerView)
+
+        reactionHostVC.view.backgroundColor = .clear
+        reactionHostVC.view.translatesAutoresizingMaskIntoConstraints = false
+
+        window.addSubview(reactionHostVC.view)
+
+        var reactionPadding: CGFloat = isNewDay ? 45 : 5
+        if shrinkCell {
+            reactionPadding += (startingFrame.height / 3)
+        }
+
+        reactionHostVC.view.bottomAnchor.constraint(equalTo: focusedView.topAnchor, constant: reactionPadding)
+            .isActive = true
+        reactionHostVC.view.leadingAnchor.constraint(equalTo: focusedView.leadingAnchor, constant: 20).isActive = message.direction == .received
+        reactionHostVC.view.trailingAnchor.constraint(equalTo: focusedView.trailingAnchor, constant: -20).isActive = message.direction == .sent
+
+        let messageMenuView = MessageMenuView(message: message)
+        let messageMenuHostVC = UIHostingController(rootView: messageMenuView)
+
+        messageMenuHostVC.view.backgroundColor = .clear
+        messageMenuHostVC.view.translatesAutoresizingMaskIntoConstraints = false
+
+        var menuPadding: CGFloat = 0
+        if shrinkCell {
+            menuPadding -= (startingFrame.height / 2.5)
+        }
+
+        window.addSubview(messageMenuHostVC.view)
+        messageMenuHostVC.view.topAnchor.constraint(equalTo: focusedView.bottomAnchor, constant: menuPadding).isActive = true
+        messageMenuHostVC.view.leadingAnchor.constraint(equalTo: focusedView.leadingAnchor, constant: 20).isActive = message.direction == .received
+        messageMenuHostVC.view.trailingAnchor.constraint(equalTo: focusedView.trailingAnchor, constant: -20).isActive = message.direction == .sent
+
+        self.reactionHostVC = reactionHostVC
+        self.messageMenuHostVC = messageMenuHostVC
+    }
+
+    @objc private func dismissContextMenu() {
+        UIView.animate(withDuration: 0.6, delay: 0, usingSpringWithDamping: 0.8, initialSpringVelocity: 1, options: .curveEaseOut) { [weak self] in
+            guard let self else { return }
+            focusedView?.transform = .identity
+            focusedView?.frame = startingFrame ?? .zero
+            reactionHostVC?.view.removeFromSuperview()
+            messageMenuHostVC?.view.removeFromSuperview()
+            blurView?.alpha = 0
+        } completion: { [weak self] _ in
+            self?.highlightedCell?.alpha = 1
+            self?.blurView?.removeFromSuperview()
+            self?.focusedView?.removeFromSuperview()
+            self?.highlightedCell = nil
+            self?.blurView = nil
+            self?.focusedView = nil
+            self?.reactionHostVC = nil
+            self?.messageMenuHostVC = nil
+        }
+    }
+
+    private func shrinkCell(_ cellHeight: CGFloat) -> Bool {
+        let screenHeight = (UIWindowScene.current?.screenHeight ?? 0) / 1.2
+        let spacingForMenuView = screenHeight - cellHeight
+        return spacingForMenuView < 190
+    }
+
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        if scrollView.contentOffset.y <= 0 {
+            pullDownHUDView.alpha = viewModel.isPaginatable ? 1 : 0
+        } else {
+            pullDownHUDView.alpha = 0
+        }
+    }
+}
+
+extension MessageListController {
+    private func setUpLongPressGestureRecognizer() {
+        let longPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(showContextMenu))
+        longPressGesture.minimumPressDuration = 0.5
+        messagesCollectionView.addGestureRecognizer(longPressGesture)
+    }
+
+    @objc private func showContextMenu(_ gesture: UILongPressGestureRecognizer) {
+        guard gesture.state == .began else { return }
+        let point = gesture.location(in: messagesCollectionView)
+        guard let indexPath = messagesCollectionView.indexPathForItem(at: point) else { return }
+
+        let message = viewModel.messages[indexPath.item]
+        guard !message.type.isAdminMessage else { return }
+
+        guard let selectedCell = messagesCollectionView.cellForItem(at: indexPath) else { return }
+
+        Haptic.impact(.medium)
+
         startingFrame = selectedCell.superview?.convert(selectedCell.frame, to: nil)
 
-        guard let snapshotView = selectedCell.snapshotView(afterScreenUpdates: false) else { return }
+        guard let snapshotCell = selectedCell.snapshotView(afterScreenUpdates: false) else { return }
 
         focusedView = UIView(frame: startingFrame ?? .zero)
         guard let focusedView else { return }
@@ -208,45 +320,25 @@ extension MessageListController: UICollectionViewDelegate, UICollectionViewDataS
 
         keyWindow.addSubview(blurView)
         keyWindow.addSubview(focusedView)
-        focusedView.addSubview(snapshotView)
+        focusedView.addSubview(snapshotCell)
         blurView.frame = keyWindow.frame
+
+        let isNewDay = viewModel.isNewDay(for: message, at: indexPath.item)
+        let shrinkCell = shrinkCell(startingFrame?.height ?? 0)
+
+        attachMenuActionItem(to: message, in: keyWindow, isNewDay)
 
         UIView.animate(withDuration: 0.6, delay: 0, usingSpringWithDamping: 0.7, initialSpringVelocity: 1, options: .curveEaseIn) {
             blurView.alpha = 1
-            focusedView.center.y = keyWindow.center.y
-            snapshotView.frame = focusedView.bounds
-        }
+            focusedView.center.y = keyWindow.center.y - 60
+            snapshotCell.frame = focusedView.bounds
+            snapshotCell.layer.applyShadow(color: .gray, alpha: 0.2, x: 0, y: 2, blur: 4)
 
-        UIApplication.dismissKeyboard()
-        let messageItem = viewModel.messages[indexPath.row]
-        switch messageItem.type {
-        case .video:
-            guard let videoURLString = messageItem.videoURL, let url = URL(string: videoURLString) else { return }
-            viewModel.showMediaPlayer(url)
-        default: break
-        }
-    }
-
-    @objc private func dismissContextMenu() {
-        UIView.animate(withDuration: 0.6, delay: 0, usingSpringWithDamping: 0.8, initialSpringVelocity: 1, options: .curveEaseOut) { [weak self] in
-            guard let self else { return }
-            focusedView?.frame = startingFrame ?? .zero
-            blurView?.alpha = 0
-        } completion: { [weak self] _ in
-            self?.highlightedCell?.alpha = 1
-            self?.blurView?.removeFromSuperview()
-            self?.focusedView?.removeFromSuperview()
-            self?.highlightedCell = nil
-            self?.blurView = nil
-            self?.focusedView = nil
-        }
-    }
-
-    func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        if scrollView.contentOffset.y <= 0 {
-            pullDownHUDView.alpha = viewModel.isPaginatable ? 1 : 0
-        } else {
-            pullDownHUDView.alpha = 0
+            if shrinkCell {
+                let xTranslation: CGFloat = message.direction == .received ? -80 : 80
+                let translation = CGAffineTransform(translationX: xTranslation, y: 1)
+                focusedView.transform = CGAffineTransform(scaleX: 0.5, y: 0.5).concatenating(translation)
+            }
         }
     }
 }
@@ -262,7 +354,18 @@ private extension UICollectionView {
     }
 }
 
+extension CALayer {
+    func applyShadow(color: UIColor, alpha: Float, x: CGFloat, y: CGFloat, blur: CGFloat) {
+        shadowColor = color.cgColor
+        shadowOpacity = alpha
+        shadowOffset = .init(width: x, height: y)
+        shadowRadius = blur
+        masksToBounds = false
+    }
+}
+
 #Preview {
     MessageListView(ChatRoomViewModel(.placeholder))
         .ignoresSafeArea()
+        .environmentObject(VoiceMessagePlayer())
 }

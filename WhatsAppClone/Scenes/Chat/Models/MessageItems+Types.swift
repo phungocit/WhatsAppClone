@@ -65,6 +65,13 @@ enum MessageType: Hashable {
             }
         }
     }
+
+    var isAdminMessage: Bool {
+        if case .admin = self {
+            return true
+        }
+        return false
+    }
 }
 
 extension MessageType: Equatable {
@@ -88,5 +95,49 @@ enum MessageDirection {
 
     static var random: MessageDirection {
         [MessageDirection.sent, .received].randomElement() ?? .sent
+    }
+}
+
+enum Reaction {
+    case like, heart, laugh, shocked, sad, pray, more
+
+    var emoji: String {
+        switch self {
+        case .like:
+            "👍"
+        case .heart:
+            "❤️"
+        case .laugh:
+            "😂"
+        case .shocked:
+            "😮"
+        case .sad:
+            "😢"
+        case .pray:
+            "🙏"
+        case .more:
+            "+"
+        }
+    }
+}
+
+enum MessageMenuAction: String, CaseIterable, Identifiable {
+    case reply, forward, copy, delete
+
+    var id: String {
+        rawValue
+    }
+
+    var systemImage: String {
+        switch self {
+        case .reply:
+            "arrowshape.turn.up.left"
+        case .forward:
+            "paperplane"
+        case .copy:
+            "doc.on.doc"
+        case .delete:
+            "trash"
+        }
     }
 }

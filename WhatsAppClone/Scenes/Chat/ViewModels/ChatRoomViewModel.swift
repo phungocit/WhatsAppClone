@@ -407,6 +407,16 @@ final class ChatRoomViewModel: ObservableObject {
         }
     }
 
+    func addReaction(_ reaction: Reaction, to message: MessageItem) {
+        guard let currentUser, let index = messages.firstIndex(where: { $0.id == message.id }) else { return }
+        MessageService.addReaction(reaction, to: message, in: channel, from: currentUser) { [weak self] emojiCount in
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                self?.messages[index].reactions[reaction.emoji] = emojiCount
+                self?.messages[index].userReactions[currentUser.uid] = reaction.emoji
+            }
+        }
+    }
+
     private var dummyMessages: [MessageItem] {
         [
             MessageItem(id: "1", isGroupChat: false, text: "", type: .admin(AdminMessageType.channelCreation), ownerUid: "1", timeStamp: ISO8601DateFormatter().date(from: "2024-06-20 01: 55: 28 +0000") ?? Date(), sender: nil, thumbnailUrl: nil, thumbnailWidth: nil, thumbnailHeight: nil, videoURL: nil, audioURL: nil, audioDuration: nil),
